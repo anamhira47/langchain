@@ -34,6 +34,9 @@ class BaseTracer(BaseCallbackHandler, ABC):
     def _persist_run(self, run: Run) -> None:
         """Persist a run."""
 
+    def _patch_run(self, run: Run) -> None:
+        """Patch a run object."""
+
     def _start_trace(self, run: Run) -> None:
         """Start a trace for a run."""
         if run.parent_run_id:
@@ -45,12 +48,11 @@ class BaseTracer(BaseCallbackHandler, ABC):
                     f"Parent run with UUID {run.parent_run_id} not found."
                 )
         self.run_map[str(run.id)] = run
+        self._persist_run(run)
 
     def _end_trace(self, run: Run) -> None:
         """End a trace for a run."""
-        if not run.parent_run_id:
-            self._persist_run(run)
-        else:
+        if run.parent_run_id:
             parent_run = self.run_map.get(str(run.parent_run_id))
             if parent_run is None:
                 raise TracerException(
@@ -58,6 +60,7 @@ class BaseTracer(BaseCallbackHandler, ABC):
                 )
             if run.child_execution_order > parent_run.child_execution_order:
                 parent_run.child_execution_order = run.child_execution_order
+        self._patch_run(run)
         self.run_map.pop(str(run.id))
 
     def _get_execution_order(self, parent_run_id: Optional[str] = None) -> int:

@@ -137,5 +137,14 @@ class RunCreate(RunBase):
     session_id: UUID
 
 
+class RunUpdate(BaseModel):
+    end_time: datetime.datetime | None
+    extra: Dict | None
+    error: str | None
+    outputs: Dict | None
+    parent_run_id: UUID | None
+    example_id: UUID | None
+
+
 ChainRun.update_forward_refs()
 ToolRun.update_forward_refs()
